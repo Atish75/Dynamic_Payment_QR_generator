@@ -1,133 +1,722 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Dynamic Payment QR</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f7fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .container {
-            width: 450px;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        form {
-            margin-bottom: 25px;
-        }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: bold;
-            color: #444;
-        }
-        input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #1976d2;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #0d47a1;
-        }
-        .qr-card {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .qr-card img {
-            margin: 20px 0;
-            width: 220px;
-            height: 220px;
-        }
-        .details {
-            text-align: left;
-            margin-top: 10px;
-        }
-        .details p {
-            margin: 6px 0;
-            font-size: 14px;
-            color: #555;
-        }
-        .amount {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2e7d32;
-        }
-        .btn-link {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 10px 18px;
-            background: #1976d2;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 6px;
-        }
-        .btn-link:hover {
-            background: #0d47a1;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dynamic Payment QR</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px 16px;
+    }
+
+    .app-shell {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* Topbar */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 10px;
+    }
+
+    .secure-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.875rem;
+      color: var(--muted);
+      background: var(--surface);
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+
+    /* Intro */
+    .intro {
+      margin-bottom: 32px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .eyebrow span {
+      display: inline-grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      background: #dbeafe;
+      border-radius: 50%;
+      font-size: 0.75rem;
+    }
+
+    .intro h1 {
+      font-size: 2rem;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .intro p {
+      color: var(--muted);
+    }
+
+    /* Grid */
+    .payment-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .payment-grid.single-col {
+      grid-template-columns: minmax(0, 520px);
+      justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+      .payment-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-card,
+    .qr-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+    }
+
+    .card-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .section-kicker {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .card-heading h2 {
+      font-size: 1.25rem;
+    }
+
+    .step-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      background: var(--bg);
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    /* UPI Box */
+    .upi-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg);
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+
+    .upi-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #dbeafe;
+      color: var(--primary);
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    .upi-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .upi-details span {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .upi-details strong {
+      font-size: 0.95rem;
+      word-break: break-all;
+    }
+
+    .settings-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+
+    .settings-link:hover {
+      background: var(--border);
+    }
+
+    /* Form Controls */
+    form label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    form label em {
+      font-style: normal;
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 0.8rem;
+    }
+
+    form > input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      outline: none;
+    }
+
+    form > input:focus,
+    .amount-input:focus-within {
+      border-color: var(--primary);
+    }
+
+    .amount-input {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 14px;
+      margin-bottom: 16px;
+      background: #fff;
+    }
+
+    .amount-input span {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .amount-input input {
+      border: none;
+      outline: none;
+      width: 100%;
+      padding: 11px 8px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .amount-input .currency {
+      font-size: 0.8rem;
+    }
+
+    .primary-button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .primary-button:hover {
+      background: var(--primary-hover);
+    }
+
+    .form-message {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      font-size: 0.875rem;
+      color: var(--success);
+      font-weight: 500;
+    }
+
+    /* QR Card */
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--success);
+      background: #dcfce7;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .live-pill i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      display: inline-block;
+    }
+
+    .qr-wrap {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 10px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .qr-wrap img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+    }
+
+    .scan-hint {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .payment-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg);
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .payment-total span {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .payment-total strong {
+      font-size: 1.5rem;
+    }
+
+    .summary {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin-bottom: 18px;
+      font-size: 0.9rem;
+    }
+
+    .summary > div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .summary span {
+      color: var(--muted);
+    }
+
+    .summary button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .qr-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .qr-actions a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .qr-actions a:hover {
+      background: var(--bg);
+    }
+
+    .pay-now {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 11px;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+    }
+
+    .pay-now:hover {
+      background: #dbeafe;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    footer span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Generate UPI Payment QR</h2>
-        <form method="post">
-            {% csrf_token %}
-            <label>UPI ID</label>
-            <input type="text" name="upi_id" placeholder="example@upi" required>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="" aria-label="Payflow home">
+        <span class="brand-mark">
+          <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="7" height="7" x="3" y="3" rx="1" />
+            <rect width="7" height="7" x="14" y="3" rx="1" />
+            <rect width="7" height="7" x="3" y="14" rx="1" />
+            <path d="M14 14h3v3h-3zm4 4h3v3h-3zm0-4h3m-7 7h3" />
+          </svg>
+        </span>
+        <span>Dynamic QR Payment</span>
+      </a>
+      <span class="secure-label">
+        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <rect width="16" height="12" x="4" y="10" rx="2" />
+          <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+        </svg>
+        Secure UPI payment
+      </span>
+    </header>
 
-            <label>Name</label>
-            <input type="text" name="name" placeholder="John Doe" required>
+    <section class="intro">
+      <div class="eyebrow"><span>{% if qr_image %}2{% else %}1{% endif %}</span> {% if qr_image %}Scan & pay{% else %}Create payment{% endif %}</div>
+      <h1>Get paid in seconds.</h1>
+      <p>Create a secure payment QR your customer can scan with any UPI app.</p>
+    </section>
 
-            <label>Amount (₹)</label>
-            <input type="number" name="amount" placeholder="5000" required>
+    <section class="payment-grid {% if not qr_image %}single-col{% endif %}">
+      <!-- Left Form Card -->
+      <div class="form-card">
+        <div class="card-heading">
+          <div>
+            <p class="section-kicker">Payment details</p>
+            <h2>Create a new request</h2>
+          </div>
+          <span class="step-label">Step 1 of 2</span>
+        </div>
 
-            <label>Note</label>
-            <input type="text" name="note" placeholder="Payment for services">
+        <form id="payment-form" method="POST" action="">
+          {% csrf_token %}
 
-            <button type="submit">Generate QR</button>
-        </form>
-
-        {% if qr_image %}
-        <div class="qr-card">
-            <h3>First Generate Then Scan to Pay</h3>
-            <img src="data:image/png;base64,{{ qr_image }}" alt="UPI Payment QR">
-            <div class="details">
-                <p><strong>UPI ID:</strong> {{ upi_id }}</p>
-                <p><strong>Name:</strong> {{ name }}</p>
-                <p class="amount">Amount: ₹{{ amount }}</p>
-                <p><strong>Note:</strong> {{ note }}</p>
+          <div class="upi-box">
+            <div class="upi-avatar">{{ upi_id|slice:":2" }}</div>
+            <div class="upi-details">
+              <span>Receiving to</span>
+              <strong>{{ upi_id }}</strong>
             </div>
-            <a href="upi://pay?pa={{ upi_id }}&pn={{ name }}&am={{ amount }}&cu=INR&tn={{ note }}" 
-       class="btn-link">
-       Pay Now
-    </a>
-            
+            <a class="settings-link" href="{% url 'upi_settings' %}" aria-label="UPI Settings">
+              <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
+              </svg>
+              Settings
+            </a>
+          </div>
+
+          <label for="name">Customer Name</label>
+          <input
+            id="name"
+            name="name"
+            value="{{ name|default:'' }}"
+            placeholder="e.g. Rohan Sharma"
+            required
+          />
+
+          <label for="amount">Amount (₹)</label>
+          <div class="amount-input">
+            <span>₹</span>
+            <input
+              id="amount"
+              name="amount"
+              type="number"
+              step="any"
+              min="1"
+              value="{{ amount|default:'' }}"
+              placeholder="0"
+              required
+            />
+            <span class="currency">INR</span>
+          </div>
+
+          <label for="note">Note <em>Optional</em></label>
+          <input
+            id="note"
+            name="note"
+            value="{{ note|default:'' }}"
+            placeholder="Payment for services"
+            maxlength="80"
+          />
+
+          <button class="primary-button" type="submit">
+            Generate QR
+            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+
+          {% if qr_image %}
+            <p class="form-message">
+              <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                <path d="m5 12 4 4L19 6" />
+              </svg>
+              Your payment QR is ready to scan.
+            </p>
+          {% endif %}
+        </form>
+      </div>
+
+      <!-- Right QR Card (Shown only after POST request generates qr_image) -->
+      {% if qr_image %}
+      <div class="qr-card">
+        <div class="card-heading qr-heading">
+          <div>
+            <p class="section-kicker">Ready to scan</p>
+            <h2>Scan to Pay</h2>
+          </div>
+          <span class="live-pill"><i></i> Live</span>
+        </div>
+
+        <div class="qr-wrap">
+          <img
+            src="data:image/png;base64,{{ qr_image }}"
+            alt="UPI payment QR for {{ name|default:upi_id }}"
+          />
+        </div>
+        <p class="scan-hint">Scan using any UPI app</p>
+
+        {% if amount %}
+        <div class="payment-total">
+          <span>Amount to pay</span>
+          <strong>₹{{ amount }}</strong>
         </div>
         {% endif %}
-    </div>
+
+        <div class="summary">
+  <div>
+    <span>Paying to (Merchant)</span>
+    <strong>{{ banking_name }}</strong>
+  </div>
+  <div>
+    <span>Customer</span>
+    <strong>{{ name|default:"—" }}</strong>
+  </div>
+  <div>
+    <span>UPI ID</span>
+    <button type="button" id="copy-upi-btn" data-upi="{{ upi_id }}">
+      <span>{{ upi_id }}</span>
+      <span id="copy-icon">
+        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <rect width="13" height="13" x="9" y="9" rx="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      </span>
+    </button>
+  </div>
+  {% if note %}
+  <div>
+    <span>Note</span>
+    <strong>{{ note }}</strong>
+  </div>
+  {% endif %}
+</div>
+
+        <div class="qr-actions">
+          <a href="">
+            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            New Entry
+          </a>
+          <a href="data:image/png;base64,{{ qr_image }}" download="upi-qr-{{ name|slugify|default:'payment' }}.png">
+            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v12m0 0 4-4m-4 4-4-4" />
+              <path d="M5 21h14" />
+            </svg>
+            Download QR
+          </a>
+        </div>
+
+        <a
+  class="pay-now"
+  href="upi://pay?pa={{ upi_id|urlencode }}&pn={{ banking_name|urlencode }}&cu=INR{% if amount %}&am={{ amount|urlencode }}{% endif %}{% if name or note %}&tn={{ name|urlencode }}{% if note %}%20-%20{{ note|urlencode }}{% endif %}{% endif %}"
+>
+  Pay Now
+  <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+    <path d="m9 18 6-6-6-6" />
+  </svg>
+</a>
+      </div>
+      {% endif %}
+    </section>
+
+    <footer>
+      <span>
+        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <rect width="16" height="12" x="4" y="10" rx="2" />
+          <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+        </svg>
+        Payments are processed securely by your UPI app.
+      </span>
+      <span>
+        Need help? <a href="{% url 'upi_settings' %}">Manage UPI Settings</a>
+      </span>
+    </footer>
+  </main>
+
+  <script>
+    const copyUpiBtn = document.getElementById("copy-upi-btn");
+    if (copyUpiBtn) {
+      const copyIcon = document.getElementById("copy-icon");
+      const checkSvg = `<svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="m5 12 4 4L19 6" /></svg>`;
+      const copySvg = `<svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect width="13" height="13" x="9" y="9" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>`;
+
+      copyUpiBtn.addEventListener("click", async () => {
+        const upiText = copyUpiBtn.getAttribute("data-upi");
+        if (navigator.clipboard && upiText) {
+          await navigator.clipboard.writeText(upiText);
+          copyIcon.innerHTML = checkSvg;
+          setTimeout(() => {
+            copyIcon.innerHTML = copySvg;
+          }, 1800);
+        }
+      });
+    }
+  </script>
 </body>
 </html>
